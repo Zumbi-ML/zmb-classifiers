@@ -5,6 +5,7 @@ from datasets import Dataset
 from sklearn.metrics import classification_report
 import yaml
 import os
+from datetime import datetime
 
 def load_config(config_path="config.yaml"):
     with open(config_path, "r") as f:
@@ -25,7 +26,6 @@ def preprocess_dataset(df, tokenizer, config):
             max_length=512
         )
 
-    # Substitui split original
     from sklearn.model_selection import train_test_split
     train_df, test_df = train_test_split(
         df, 
@@ -35,7 +35,7 @@ def preprocess_dataset(df, tokenizer, config):
     test_dataset = Dataset.from_pandas(test_df).map(tokenize, batched=True)
     return test_df, test_dataset
 
-def main(config_path="config.yaml"):
+def evaluate_model(config_path="config.yaml"):
     config = load_config(config_path)
     model_path = config["model"]["save_path"]
 
@@ -65,9 +65,19 @@ def main(config_path="config.yaml"):
     result_df["acertou"] = result_df["label_verdadeiro"] == result_df["label_predito"]
 
     os.makedirs("evaluation", exist_ok=True)
-    result_df.to_csv("evaluation/resultados_avaliacao.csv", index=False)
-    print("[INFO] Resultados salvos em evaluation/resultados_avaliacao.csv")
+
+    timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    output_path = f"evaluation/resultados_avaliacao_{timestamp}.csv"
+    
+    result_df.to_csv(f"{output_path}", index=False)
+
+
+    print(f"[INFO] Resultados salvos em {output_path}")
+
+
+def main():
+    evaluate_model()
 
 if __name__ == "__main__":
     print("Iniciando avaliação")
-    main()
+    evaluate_model()

@@ -1,6 +1,7 @@
 __pycache__/
-data/*
+data/
 venv
 models/
 zmb_classifiers.egg-info/
-results/
+dist/
+build/

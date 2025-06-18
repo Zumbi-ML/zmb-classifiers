@@ -15,9 +15,10 @@ setup(
     entry_points={
         "console_scripts": [
             "zmb-cli=zmb.cli:main",
+            "zmb-train=zmb.train:main",
         ],
     },
-    author="Seu Nome",
+    author="Jefferson O. Silva",
     description="Classificador de matérias jornalísticas com pipeline configurável",
     python_requires=">=3.8",
 )

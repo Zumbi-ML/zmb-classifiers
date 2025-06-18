@@ -9,7 +9,7 @@ def train_model(train_dataset, test_dataset, tokenizer, config):
 
     training_args = TrainingArguments(
         output_dir="./results",
-        evaluation_strategy="epoch",
+        eval_strategy="epoch",
         save_strategy="epoch",
         num_train_epochs=config["training"]["epochs"],
         per_device_train_batch_size=config["training"]["batch_size"],
@@ -19,13 +19,12 @@ def train_model(train_dataset, test_dataset, tokenizer, config):
         load_best_model_at_end=True,
         metric_for_best_model="eval_accuracy"
     )
-
+    
     trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=test_dataset,
-        tokenizer=tokenizer,
         compute_metrics=compute_metrics
     )
 

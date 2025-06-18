@@ -1,6 +1,6 @@
 import argparse
 from zmb.pipeline import run_pipeline
-from zmb.evaluate import main as evaluate_model
+from zmb.evaluate import evaluate_model
 
 def main():
     parser = argparse.ArgumentParser(description="ZMB Classifiers - Treinamento e Avaliação")
