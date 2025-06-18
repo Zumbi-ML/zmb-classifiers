@@ -1,0 +1,15 @@
+data:
+  input: "./data/03-ready_4_training/classifier-dataset.csv"
+  target: "label"
+  text_column: "text"
+
+model:
+  type: "bertimbau"
+  pretrained_model: "neuralmind/bert-base-portuguese-cased"
+  save_path: "./models/zmb_model"
+
+training:
+  test_size: 0.2
+  random_state: 42
+  epochs: 3
+  batch_size: 4

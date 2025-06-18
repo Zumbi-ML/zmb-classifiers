@@ -1,20 +1,7 @@
-# Manipulação de dados
-pandas>=2.0.0
-
-# Pré-processamento
-regex>=2023.0.0
-
-# Treinamento e modelagem
-torch>=2.0.0
-transformers>=4.30.0
-datasets>=2.10.1
-
-# Para avaliação de métricas
+transformers[torch]>=4.38.0
+datasets>=2.18.0
 scikit-learn>=1.3.0
-
-# Utilitários extras (opcional)
-tqdm>=4.66.0
-
-accelerate
-
-datasets
+pandas>=2.0.0
+PyYAML>=6.0
+joblib>=1.3.0
+torch>=2.1.0
