@@ -165,6 +165,15 @@ pip install -r requirements.txt
 
 ---
 
+## Como Citar o Projeto
+
+Se você utilizar o classificador Zumbi em sua pesquisa, por favor cite-o da seguinte forma:
+
+> SILVA, J. O. **Preto e Branco: O desenvolvimento de um classificador de matérias jornalísticas com referências raciais**. Disponível em: <https://github.com/Zumbi-ML/zmb-classifiers>. Acesso em: [data de acesso].
+
+
+---
+
 ## 👨‍💻 Autor
 
 Jefferson O. Silva – [silvajo@pucsp.br](mailto:silvajo@pucsp.br)
