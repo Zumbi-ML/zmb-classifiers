@@ -13,12 +13,11 @@ setup(
         "torch",
     ],
     entry_points={
-        "console_scripts": [
-            "zmb-cli=zmb.cli:main",
-            "zmb-train=zmb.train:main",
+        'console_scripts': [
+            'zmb-clf = zmb.cli:main',
         ],
     },
     author="Jefferson O. Silva",
-    description="Classificador de matérias jornalísticas com pipeline configurável",
+    description="Classificador que determina se uma matéria de jornal contém referências às raças negra, branca ou a elementos da cultura negra.",
     python_requires=">=3.8",
 )

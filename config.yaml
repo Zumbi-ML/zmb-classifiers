@@ -1,5 +1,10 @@
+paths:
+  raw_json_dir: "./data/03-jsonified"
+  dataset_csv: "./data/04-ready_4_training/classifier_dataset.csv"
+  evaluation_dir: "./evaluation"
+
 data:
-  input: "./data/03-ready_4_training/classifier-dataset.csv"
+  input: "./data/04-ready_4_training/classifier_dataset.csv"
   target: "label"
   text_column: "text"
 

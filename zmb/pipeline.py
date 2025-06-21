@@ -20,7 +20,7 @@ def run_pipeline(config_path="config.yaml"):
     trainer = train_model(train_dataset, test_dataset, tokenizer, config)
 
     print("[INFO] Avaliando modelo")
-    evaluate_model(trainer, test_dataset)
+    evaluate_model()
 
     print("[INFO] Salvando modelo")
     trainer.save_model(config["model"]["save_path"])
