@@ -27,7 +27,7 @@ pip install .
 
 ### 📌 Dependência obrigatória
 
-Instale também o [zmb-newslink-extractor](https://github.com/seu_usuario/zmb-newslink-extractor), responsável pela extração dos textos jornalísticos:
+Instale também o [zmb-newslink-extractor](https://github.com/Zumbi-ML/zmb-newslink-extractor), responsável pela extração dos textos jornalísticos:
 
 ```bash
 git clone git@github.com:Zumbi-ML/zmb-newslink-extractor.git
@@ -162,6 +162,14 @@ training:
 ```bash
 pip install -r requirements.txt
 ```
+
+---
+
+## Como Citar o Projeto
+
+Se você utilizar o classificador Zumbi em sua pesquisa, por favor cite-o da seguinte forma:
+
+> SILVA, J. O. **Preto e Branco: o desenvolvimento de um classificador de matérias jornalísticas com referências raciais**. 2025. Disponível em: [https://github.com/Zumbi-ML/zmb-classifiers](https://github.com/Zumbi-ML/zmb-classifiers). Acesso em: \[data de acesso].
 
 ---
 
