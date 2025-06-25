@@ -2,7 +2,7 @@ import argparse
 import yaml
 
 def main():
-    parser = argparse.ArgumentParser(description="ZMB Classifiers - Treinamento, Avaliação e Preparação de Dataset")
+    parser = argparse.ArgumentParser(description="ZMB Classifiers - Treinamento, Avaliação, Dataset e Inferência")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # train
@@ -16,6 +16,10 @@ def main():
     # make-dataset
     make_ds_parser = subparsers.add_parser("make-dataset", help="Gera CSV de treinamento a partir de JSONs")
     make_ds_parser.add_argument("--config", type=str, default="config.yaml", help="Arquivo de configuração YAML")
+
+    # predict
+    predict_parser = subparsers.add_parser("predict", help="Faz a inferência de um texto usando o modelo final salvo")
+    predict_parser.add_argument("--text", type=str, required=True, help="Texto da matéria jornalística para classificar")
 
     args = parser.parse_args()
 
@@ -33,5 +37,11 @@ def main():
             config = yaml.safe_load(f)
         input_dir = config["paths"]["raw_json_dir"]
         output_file = config["paths"]["dataset_csv"]
-        # Se quiser, também pode ler os nomes dos campos do YAML futuramente
         process_jsons(input_dir, output_file)
+
+    elif args.command == "predict":
+        import json
+        from zmb.inference import ZMBClassifier
+        clf = ZMBClassifier(model_path="./output")
+        result = clf.predict(args.text)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
