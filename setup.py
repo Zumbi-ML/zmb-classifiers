@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name="zmb-classifiers",
     version="0.1",
-    packages=find_packages(),
+    packages=find_packages(include=["zmb_classifiers", "zmb_classifiers.*"]),
     install_requires=[
         "pandas",
         "scikit-learn",
@@ -11,10 +11,12 @@ setup(
         "datasets",
         "transformers",
         "torch",
+        "huggingface_hub",
+        "safetensors"
     ],
     entry_points={
         'console_scripts': [
-            'zmb-clf = zmb.cli:main',
+            'zmb-clf = zmb_classifiers.cli:main',
         ],
     },
     author="Jefferson O. Silva",
