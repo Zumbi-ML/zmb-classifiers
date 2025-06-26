@@ -2,6 +2,7 @@ paths:
   raw_json_dir: "./data/03-jsonified"
   dataset_csv: "./data/04-ready_4_training/classifier_dataset.csv"
   evaluation_dir: "./evaluation"
+  export_dir: "./publish_hf_model" 
 
 data:
   input: "./data/04-ready_4_training/classifier_dataset.csv"
@@ -11,7 +12,9 @@ data:
 model:
   type: "bertimbau"
   pretrained_model: "neuralmind/bert-base-portuguese-cased"
-  save_path: "./models/zmb_model"
+  save_path: "./models/zmb_model"        
+  serialization_format: "safetensors"            
+  hf_repo_url: "https://huggingface.co/j3ffsilva/zmb-classifier-model"
 
 training:
   test_size: 0.2

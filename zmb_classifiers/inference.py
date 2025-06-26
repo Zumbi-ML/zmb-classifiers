@@ -12,8 +12,11 @@ class ZmbClassifier:
             model_path = snapshot_download(repo_id=hf_repo, cache_dir=cache_dir)
 
         print(f"[INFO] Carregando modelo de: {model_path}")
-        self.tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
-        self.model = AutoModelForSequenceClassification.from_pretrained(model_path, trust_remote_code=True)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_path)
+        self.model = AutoModelForSequenceClassification.from_pretrained(
+            model_path,
+            trust_remote_code=True
+        )
         self.model.eval()
 
         self.label_map = {
