@@ -3,80 +3,89 @@ import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, Trainer
 from datasets import Dataset
 from sklearn.metrics import classification_report
-import yaml
-import os
 from datetime import datetime
+import os
 
-def load_config(config_path="config.yaml"):
-    with open(config_path, "r") as f:
-        return yaml.safe_load(f)
+from zmb_classifiers.config import CONFIG
 
 def preprocess_dataset(df, tokenizer, config):
     text_column = config["data"]["text_column"]
     target_column = config["data"]["target"]
 
-    if df[target_column].dtype != int:
+    if text_column not in df.columns:
+        raise ValueError(f"Coluna '{text_column}' não encontrada no DataFrame")
+    if target_column not in df.columns:
+        raise ValueError(f"Coluna '{target_column}' não encontrada no DataFrame")
+
+    df = df.dropna(subset=[text_column]).copy()
+    df[text_column] = df[text_column].astype(str)
+
+    if df[target_column].dtype not in ['int64', 'int32']:
         df[target_column] = df[target_column].astype('category').cat.codes
 
-    def tokenize(example):
+    def tokenize(examples):
+        texts = [str(text) for text in examples[text_column]]
         return tokenizer(
-            example[text_column],
+            texts,
             padding="max_length",
             truncation=True,
-            max_length=512
+            max_length=config["model"].get("max_length", 512)
         )
 
-    from sklearn.model_selection import train_test_split
-    train_df, test_df = train_test_split(
-        df, 
-        test_size=config["training"]["test_size"], 
-        random_state=config["training"]["random_state"]
-    )
-    test_dataset = Dataset.from_pandas(test_df).map(tokenize, batched=True)
-    return test_df, test_dataset
+    test_dataset = Dataset.from_pandas(df).map(tokenize, batched=True)
+    return df, test_dataset
 
-def evaluate_model(config_path="config.yaml"):
-    config = load_config(config_path)
-    model_path = config["model"]["save_path"]
+def evaluate_model():
+    model_path = CONFIG["paths"]["best_model_dir"]
 
     print("[INFO] Carregando modelo e tokenizer...")
-    model = AutoModelForSequenceClassification.from_pretrained(model_path)
-    tokenizer = AutoTokenizer.from_pretrained(config["model"]["pretrained_model"])
+    try:
+        model = AutoModelForSequenceClassification.from_pretrained(model_path)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+    except Exception as e:
+        print(f"[ERRO] Falha ao carregar modelo/tokenizer: {e}")
+        raise
 
     print("[INFO] Lendo e preprocessando dados...")
-    df = pd.read_csv(config["data"]["input"])
-    test_texts_df, test_dataset = preprocess_dataset(df, tokenizer, config)
+    try:
+        df = pd.read_csv(CONFIG["data"]["input"])
+        test_texts_df, test_dataset = preprocess_dataset(df, tokenizer, CONFIG)
+    except Exception as e:
+        print(f"[ERRO] Falha no pré-processamento: {e}")
+        raise
 
     print("[INFO] Avaliando modelo...")
-    trainer = Trainer(model=model)
-    predictions = trainer.predict(test_dataset)
-    preds = predictions.predictions.argmax(-1)
-    labels = predictions.label_ids
+    try:
+        trainer = Trainer(model=model)
+        predictions = trainer.predict(test_dataset)
+        preds = predictions.predictions.argmax(-1)
+        labels = predictions.label_ids
 
-    print("[INFO] Classification Report:")
-    print(classification_report(labels, preds))
+        print("\n[INFO] Classification Report:")
+        print(classification_report(labels, preds, digits=4))
+    except Exception as e:
+        print(f"[ERRO] Falha na avaliação: {e}")
+        raise
 
     print("[INFO] Salvando resultados detalhados...")
-    result_df = pd.DataFrame({
-        "texto": test_texts_df[config["data"]["text_column"]].values,
-        "label_verdadeiro": labels,
-        "label_predito": preds,
-    })
-    result_df["acertou"] = result_df["label_verdadeiro"] == result_df["label_predito"]
+    try:
+        result_df = pd.DataFrame({
+            "texto": test_texts_df[CONFIG["data"]["text_column"]].values,
+            "label_verdadeiro": labels,
+            "label_predito": preds,
+        })
+        result_df["acertou"] = result_df["label_verdadeiro"] == result_df["label_predito"]
 
-    os.makedirs("evaluation", exist_ok=True)
-
-    timestamp = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    output_path = f"evaluation/resultados_avaliacao_{timestamp}.csv"
-    
-    result_df.to_csv(f"{output_path}", index=False)
-
-
-    print(f"[INFO] Resultados salvos em {output_path}")
-
-
-def main():
-    evaluate_model()
+        from pathlib import Path
+        eval_dir = Path(CONFIG["paths"]["evaluation_dir"])
+        eval_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        output_path = eval_dir / f"resultados_avaliacao_{timestamp}.csv"
+        result_df.to_csv(output_path, index=False)
+        print(f"[INFO] Resultados salvos em {output_path}")
+    except Exception as e:
+        print(f"[ERRO] Falha ao salvar resultados: {e}")
+        raise
 
 if __name__ == "__main__":
     print("Iniciando avaliação")

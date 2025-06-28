@@ -1,9 +1,14 @@
 __pycache__/
-venv
-models/
-zmb_classifiers.egg-info/
+venv/
+*tmp
+tmp/
+artifacts/
+*xlsx#
+# Arquivos de lock/temporários do Excel/LibreOffice
+.~lock.*
+*.~*
+*#
+zmb_classifiers.egg-info
+tmp_trainer
 dist/
 build/
-results/
-*tmp
-output/

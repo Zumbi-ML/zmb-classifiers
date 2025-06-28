@@ -1,47 +1,44 @@
 import argparse
 import yaml
 
+def load_config(path):
+    with open(path, "r") as f:
+        return yaml.safe_load(f)
+
 def main():
     parser = argparse.ArgumentParser(description="ZMB Classifiers - Treinamento, Avaliação, Dataset e Inferência")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    # train
-    train_parser = subparsers.add_parser("train", help="Executa o pipeline completo de treinamento")
-    train_parser.add_argument("--config", type=str, default="config.yaml", help="Arquivo de configuração YAML")
+    for command in ["train", "evaluate", "make-dataset"]:
+        sub = subparsers.add_parser(command)
+        sub.add_argument("--config", type=str, default="config.yaml")
 
-    # evaluate
-    eval_parser = subparsers.add_parser("evaluate", help="Avalia o modelo salvo com base no dataset de teste")
-    eval_parser.add_argument("--config", type=str, default="config.yaml", help="Arquivo de configuração YAML")
-
-    # make-dataset
-    make_ds_parser = subparsers.add_parser("make-dataset", help="Gera CSV de treinamento a partir de JSONs")
-    make_ds_parser.add_argument("--config", type=str, default="config.yaml", help="Arquivo de configuração YAML")
-
-    # predict
-    predict_parser = subparsers.add_parser("predict", help="Faz a inferência de um texto usando o modelo final salvo")
-    predict_parser.add_argument("--text", type=str, required=True, help="Texto da matéria jornalística para classificar")
+    predict_parser = subparsers.add_parser("predict")
+    predict_parser.add_argument("--text", type=str, required=True)
 
     args = parser.parse_args()
 
+    if args.command in ["train", "evaluate", "make-dataset"]:
+        config = load_config(args.config)
+
     if args.command == "train":
-        from zmb.pipeline import run_pipeline
-        run_pipeline(args.config)
+        from zmb_classifiers.pipeline import run_pipeline
+        run_pipeline(config)
 
     elif args.command == "evaluate":
-        from zmb.evaluate import evaluate_model
-        evaluate_model(args.config)
+        from zmb_classifiers.evaluate import evaluate_model
+        evaluate_model()
 
     elif args.command == "make-dataset":
-        from zmb.make_ds import process_jsons
-        with open(args.config, "r") as f:
-            config = yaml.safe_load(f)
+        from zmb_classifiers.make_ds import process_jsons
         input_dir = config["paths"]["raw_json_dir"]
         output_file = config["paths"]["dataset_csv"]
         process_jsons(input_dir, output_file)
 
     elif args.command == "predict":
         import json
-        from zmb.inference import ZMBClassifier
-        clf = ZMBClassifier(model_path="./output")
+        from zmb_classifiers.inference import ZmbClassifier
+        from zmb_classifiers.config import CONFIG
+        clf = ZmbClassifier(model_path=CONFIG["paths"]["best_model_dir"])
         result = clf.predict(args.text)
         print(json.dumps(result, ensure_ascii=False, indent=2))

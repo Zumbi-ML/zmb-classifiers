@@ -8,7 +8,7 @@ def preprocess_data(df, target_column, config):
     from sklearn.model_selection import train_test_split
 
     text_column = config["data"]["text_column"]
-    tokenizer = AutoTokenizer.from_pretrained(config["model"]["pretrained_model"])
+    tokenizer = AutoTokenizer.from_pretrained(config["model"]["base_model"])
 
     def tokenize(batch):
         texts = [str(t) for t in batch[text_column]]

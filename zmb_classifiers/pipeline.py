@@ -1,14 +1,9 @@
 import pandas as pd
-import yaml
-import os
-from zmb.preprocess import preprocess_data
-from zmb.train import train_model
-from zmb.evaluate import evaluate_model
+from zmb_classifiers.preprocess import preprocess_data
+from zmb_classifiers.train import train_model
+from zmb_classifiers.evaluate import evaluate_model
 
-def run_pipeline(config_path="config.yaml"):
-    with open(config_path, "r") as f:
-        config = yaml.safe_load(f)
-
+def run_pipeline(config):
     input_path = config["data"]["input"]
     print(f"[INFO] Lendo dados de {input_path}")
     df = pd.read_csv(input_path)
@@ -23,5 +18,6 @@ def run_pipeline(config_path="config.yaml"):
     evaluate_model()
 
     print("[INFO] Salvando modelo")
-    trainer.save_model(config["model"]["save_path"])
-    tokenizer.save_pretrained(config["model"]["save_path"])
+    model_save_path = config["paths"]["best_model_dir"]
+    trainer.save_model(model_save_path)
+    tokenizer.save_pretrained(model_save_path)

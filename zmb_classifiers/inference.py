@@ -1,17 +1,23 @@
 import os
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
-import torch
 from huggingface_hub import snapshot_download
+import torch
+from zmb_classifiers.config import CONFIG
 
 class ZmbClassifier:
     def __init__(self, model_path=None):
         if model_path is None:
-            # Nome do repositório no Hugging Face
-            hf_repo = "j3ffsilva/zmb-classifier-model"
-            cache_dir = os.path.expanduser("~/.cache/zmb_classifier_model")
-            model_path = snapshot_download(repo_id=hf_repo, cache_dir=cache_dir)
+            model_path = CONFIG["paths"]["best_model_dir"]
+            if not os.path.exists(model_path) or not os.listdir(model_path):
+                print("[INFO] Modelo local não encontrado. Baixando do Hugging Face...")
+                hf_repo = CONFIG["model"]["hf_repo"]
+                cache_dir = os.path.expanduser(CONFIG["model"]["cache_dir"])
+                model_path = snapshot_download(repo_id=hf_repo, cache_dir=cache_dir)
+            else:
+                print(f"[INFO] Carregando modelo local de: {model_path}")
+        else:
+            print(f"[INFO] Carregando modelo informado de: {model_path}")
 
-        print(f"[INFO] Carregando modelo de: {model_path}")
         self.tokenizer = AutoTokenizer.from_pretrained(model_path)
         self.model = AutoModelForSequenceClassification.from_pretrained(
             model_path,

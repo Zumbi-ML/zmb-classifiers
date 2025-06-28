@@ -1,6 +1,13 @@
-from transformers import AutoModelForSequenceClassification, Trainer, TrainingArguments
-from sklearn.metrics import accuracy_score
 import os
+import torch
+from transformers import (
+    AutoModelForSequenceClassification,
+    Trainer,
+    TrainingArguments,
+    DataCollatorWithPadding
+)
+from sklearn.metrics import accuracy_score
+from zmb_classifiers.config import CONFIG
 
 def compute_metrics(eval_pred):
     logits, labels = eval_pred
@@ -10,25 +17,39 @@ def compute_metrics(eval_pred):
 
 def train_model(train_dataset, test_dataset, tokenizer, config):
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
-    pretrained_model = config["model"]["pretrained_model"]
+    
+    pretrained_model = config["model"]["base_model"]
     num_labels = len(set(train_dataset["label"]))
 
-    model = AutoModelForSequenceClassification.from_pretrained(
-        pretrained_model,
-        num_labels=num_labels
-    )
+    try:
+        model = AutoModelForSequenceClassification.from_pretrained(
+            pretrained_model,
+            num_labels=num_labels,
+            local_files_only=True
+        )
+    except:
+        model = AutoModelForSequenceClassification.from_pretrained(
+            pretrained_model,
+            num_labels=num_labels
+        )
+
+    data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
     training_args = TrainingArguments(
-        output_dir="./results",
+        output_dir=CONFIG["paths"]["checkpoints_dir"],
         eval_strategy="epoch",
         save_strategy="epoch",
         num_train_epochs=config["training"]["epochs"],
         per_device_train_batch_size=config["training"]["batch_size"],
         per_device_eval_batch_size=config["training"]["batch_size"],
         weight_decay=0.01,
-        logging_dir="./logs",
+        logging_dir=CONFIG["paths"]["logs_dir"],
         load_best_model_at_end=True,
-        metric_for_best_model="eval_accuracy"
+        metric_for_best_model="eval_accuracy",
+        dataloader_pin_memory=False,
+        dataloader_num_workers=2,
+        gradient_accumulation_steps=2,
+        fp16=torch.cuda.is_available()
     )
 
     trainer = Trainer(
@@ -36,24 +57,19 @@ def train_model(train_dataset, test_dataset, tokenizer, config):
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=test_dataset,
-        tokenizer=tokenizer,
+        data_collator=data_collator,
         compute_metrics=compute_metrics
     )
 
     print("[INFO] Treinando modelo BERTimbau")
-    trainer.train()
+    try:
+        trainer.train()
+    except Exception as e:
+        print(f"[ERRO] Falha durante o treinamento: {e}")
+        emergency_path = os.path.join(CONFIG["paths"]["checkpoints_dir"], "checkpoint_emergencia")
+        trainer.save_model(emergency_path)
+        raise
 
-    # ✅ SALVAMENTO FINAL DO MODELO PARA INFERÊNCIA
-    output_dir = "./output"
-    os.makedirs(output_dir, exist_ok=True)
-
-    print(f"[INFO] Salvando o modelo final para inferência em: {output_dir}")
-    trainer.save_model(output_dir)
-    tokenizer.save_pretrained(output_dir)
-
-    # ✅ (Opcional) Salvar o caminho do melhor checkpoint
-    if trainer.state.best_model_checkpoint:
-        with open(os.path.join(output_dir, "best_checkpoint.txt"), "w") as f:
-            f.write(trainer.state.best_model_checkpoint)
-
-    return trainer
+    # Salvar o melhor modelo final para uso futuro
+    trainer.save_model(CONFIG["paths"]["best_model_dir"])
+    tokenizer.save_pretrained(CONFIG["paths"]["best_model_dir"])
