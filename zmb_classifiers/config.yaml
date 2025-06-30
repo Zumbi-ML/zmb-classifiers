@@ -1,0 +1,34 @@
+paths:
+  raw_json_dir: "./data/03-jsonified"
+  dataset_csv: "./data/04-ready_4_training/classifier_dataset.csv"
+
+  # Diretórios principais organizados
+  evaluation_dir: "./artifacts/evaluation"
+  checkpoints_dir: "./artifacts/checkpoints"
+  best_model_dir: "./artifacts/best_model"
+  logs_dir: "./artifacts/logs"
+  publish_dir: "./artifacts/publish"
+  releases_dir: "./releases"
+  tmp_dir: "./tmp"
+
+data:
+  input: "./data/04-ready_4_training/classifier_dataset.csv"
+  target: "label"
+  text_column: "text"
+
+model:
+  type: "bertimbau"                             # nome lógico do tipo (útil para logs ou debug)
+  base_model: "neuralmind/bert-base-portuguese-cased"
+  max_seq_length: 512
+  num_labels: 2
+  serialization_format: "safetensors"
+  save_path: "./artifacts/best_model"          # redundante com paths.best_model_dir, mas pode ser útil se usado diretamente
+  hf_repo_url: "https://huggingface.co/j3ffsilva/zmb-classifier-model"
+  hf_repo_id: "j3ffsilva/zmb-classifier-model" # para snapshot_download
+  hf_cache_dir: "~/.cache/zmb_classifier_model"
+
+training:
+  test_size: 0.2
+  random_state: 42
+  epochs: 5
+  batch_size: 4

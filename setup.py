@@ -4,6 +4,10 @@ setup(
     name="zmb-classifiers",
     version="0.1",
     packages=find_packages(include=["zmb_classifiers", "zmb_classifiers.*"]),
+    include_package_data=True,
+    package_data={
+        "zmb_classifiers": ["config.yaml"],
+    },
     install_requires=[
         "pandas",
         "scikit-learn",

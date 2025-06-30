@@ -2,9 +2,11 @@ import os
 import shutil
 from pathlib import Path
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
+import torch
 import subprocess
 
 from zmb_classifiers.config import CONFIG
+
 
 def clean_or_create_publish_dir(publish_dir):
     if os.path.exists(publish_dir):
@@ -19,6 +21,7 @@ def convert_model(source_dir, publish_dir, serialization_format):
         source_dir,
         trust_remote_code=True
     )
+
     print(f"[2] Salvando modelo no formato {serialization_format.upper()}...")
     model.save_pretrained(
         publish_dir,
@@ -28,6 +31,9 @@ def convert_model(source_dir, publish_dir, serialization_format):
     print("[3] Salvando tokenizer...")
     tokenizer = AutoTokenizer.from_pretrained(source_dir)
     tokenizer.save_pretrained(publish_dir)
+
+    print("[3.1] Exportando state_dict como pytorch_model.bin...")
+    torch.save(model.state_dict(), os.path.join(publish_dir, "pytorch_model.bin"))
 
 
 def upload_to_huggingface(publish_dir, hf_repo_id):
@@ -44,6 +50,7 @@ def upload_to_huggingface(publish_dir, hf_repo_id):
         print("✅ Upload concluído com sucesso.")
     else:
         print("❌ Falha no upload. Verifique se você está autenticado com `huggingface-cli login`.")
+
 
 def main():
     source_model_dir = CONFIG["paths"]["best_model_dir"]

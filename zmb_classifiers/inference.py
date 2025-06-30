@@ -2,19 +2,26 @@ import os
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from huggingface_hub import snapshot_download
 import torch
+
 from zmb_classifiers.config import CONFIG
 
+
+def _model_is_valid(path):
+    return os.path.exists(path) and os.path.isfile(os.path.join(path, "config.json"))
+
+
 class ZmbClassifier:
-    def __init__(self, model_path=None):
+    def __init__(self, model_path=None, force_download=False):
         if model_path is None:
-            model_path = CONFIG["paths"]["best_model_dir"]
-            if not os.path.exists(model_path) or not os.listdir(model_path):
-                print("[INFO] Modelo local não encontrado. Baixando do Hugging Face...")
-                hf_repo = CONFIG["model"]["hf_repo"]
-                cache_dir = os.path.expanduser(CONFIG["model"]["cache_dir"])
-                model_path = snapshot_download(repo_id=hf_repo, cache_dir=cache_dir)
+            local_path = CONFIG["paths"]["best_model_dir"]
+            if force_download or not _model_is_valid(local_path):
+                print("[INFO] Baixando modelo atualizado do Hugging Face...")
+                hf_repo = CONFIG["model"]["hf_repo_id"]
+                cache_dir = os.path.expanduser(CONFIG["model"]["hf_cache_dir"])
+                model_path = snapshot_download(repo_id=hf_repo, cache_dir=cache_dir, local_files_only=False)
             else:
-                print(f"[INFO] Carregando modelo local de: {model_path}")
+                print(f"[INFO] Carregando modelo local de: {local_path}")
+                model_path = local_path
         else:
             print(f"[INFO] Carregando modelo informado de: {model_path}")
 

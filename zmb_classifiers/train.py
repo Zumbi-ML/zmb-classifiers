@@ -1,5 +1,6 @@
 import os
 import torch
+from transformers import EarlyStoppingCallback
 from transformers import (
     AutoModelForSequenceClassification,
     Trainer,
@@ -58,18 +59,11 @@ def train_model(train_dataset, test_dataset, tokenizer, config):
         train_dataset=train_dataset,
         eval_dataset=test_dataset,
         data_collator=data_collator,
-        compute_metrics=compute_metrics
+        compute_metrics=compute_metrics,
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=2)]
     )
 
     print("[INFO] Treinando modelo BERTimbau")
-    try:
-        trainer.train()
-    except Exception as e:
-        print(f"[ERRO] Falha durante o treinamento: {e}")
-        emergency_path = os.path.join(CONFIG["paths"]["checkpoints_dir"], "checkpoint_emergencia")
-        trainer.save_model(emergency_path)
-        raise
+    trainer.train()
 
-    # Salvar o melhor modelo final para uso futuro
-    trainer.save_model(CONFIG["paths"]["best_model_dir"])
-    tokenizer.save_pretrained(CONFIG["paths"]["best_model_dir"])
+    return trainer
